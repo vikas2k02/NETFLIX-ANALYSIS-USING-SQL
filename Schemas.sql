@@ -1,8 +1,7 @@
 -- SCHEMAS of Netflix
 
-DROP TABLE IF EXISTS netflix;
-CREATE TABLE netflix
-(
+
+CREATE TABLE IF NOT EXISTS Netflix_data(
 	show_id	VARCHAR(5),
 	type    VARCHAR(10),
 	title	VARCHAR(250),
