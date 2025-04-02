@@ -10,5 +10,4 @@
 8. List all TV shows with more than 5 seasons
 9. List all movies that are documentaries.
 10. Find all content without a director.
-11. Find how many movies actor 'Salman Khan' appeared in last 10 years!
-12. Find the top 10 actors who have appeared in the highest number of movies produced in India.
+
