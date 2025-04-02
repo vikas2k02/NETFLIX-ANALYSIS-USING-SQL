@@ -1,6 +1,8 @@
 -- Netflix Data Analysis using SQL
--- Solutions of 12 business problems
+-- Solutions of 10 business problems
 
+
+-- SQL QUESTIONS ALONG WITH ITS QUERY
 
 -- 1. Count the number of Movies vs TV Shows
 
@@ -8,36 +10,10 @@ SELECT
 	type,
 	COUNT(*)
 FROM netflix  
-GROUP BY 1
+GROUP BY 1;
 
 	
 -- 2. Find the most common rating for movies and TV shows
-
--- The (WITH RatingCounts AS) is part of a Common Table Expression (CTE). It is used to break down complex queries into smaller, more readable parts.
- WITH RatingCounts AS (   
-    SELECT 
-        type,
-        rating,
-        COUNT(*) AS rating_count
-    FROM netflix
-    GROUP BY type, rating
-),
-RankedRatings AS (
-    SELECT 
-        type,
-        rating,
-        rating_count,
-        RANK() OVER (PARTITION BY type ORDER BY rating_count DESC) AS rank
-    FROM RatingCounts
-)
-SELECT 
-    type,
-    rating AS most_frequent_rating
-FROM RankedRatings
-WHERE rank = 1;
-
-
-         ----- OR-------
 
 SELECT type, rating AS most_frequent_rating
 FROM (
@@ -45,36 +21,30 @@ FROM (
         type,
         rating,
         COUNT(*) AS rating_count,
-        RANK() OVER (PARTITION BY type ORDER BY COUNT(*) DESC) AS rank
+        ROW_NUMBER() OVER (PARTITION BY type ORDER BY COUNT(*) DESC) AS row_num
     FROM netflix
     GROUP BY type, rating
 ) AS RankedRatings
-WHERE rank = 1;
-
+WHERE row_num = 1;
 
 
 -- 3. List all movies released in a specific year (e.g., 2020)
 
 SELECT * 
 FROM netflix
-WHERE release_year = 2020
+WHERE release_year = 2020;
 
 
 -- 4. Find the top 5 countries with the most content on Netflix
 
-SELECT * 
-FROM
-(
-	SELECT 
-		-- country,
-		UNNEST(STRING_TO_ARRAY(country, ',')) as country,
-		COUNT(*) as total_content
-	FROM netflix
-	GROUP BY 1
-)as t1
+
+SELECT country ,COUNT(*) as No_of_Content
+FROM netflix 
 WHERE country IS NOT NULL
-ORDER BY total_content DESC
-LIMIT 5
+GROUP by country
+ORDER BY COUNT(country) DESC
+LIMIT 5;
+
 
 
 -- 5. Identify the longest movie
@@ -83,75 +53,46 @@ SELECT
 	*
 FROM netflix
 WHERE type = 'Movie'
-ORDER BY SPLIT_PART(duration, ' ', 1)::INT DESC
+ORDER BY SPLIT_PART(duration, ' ', 1) DESC ;
 
 
--- 6. Find content added in the last 5 years
-	
-SELECT
-*
+-- 6. Find content added in the last 6 years
+
+SELECT *
 FROM netflix
-WHERE TO_DATE(date_added, 'Month DD, YYYY') >= CURRENT_DATE - INTERVAL '5 years'
+WHERE STR_TO_DATE(date_added, '%M %d, %Y') >= DATE_SUB(CURDATE(), INTERVAL 6 YEAR)
+ORDER BY date_added ASC;
 
 
 -- 7. Find all the movies/TV shows by director 'Abhishek Varman'!
 
-SELECT *
-FROM
-(
-
-SELECT 
-	*,
-	UNNEST(STRING_TO_ARRAY(director, ',')) as director_name
-FROM 
-netflix
-)
-WHERE 
-	director_name = 'Abhishek Varman'
+    
+SELECT * 
+FROM netflix
+WHERE  director = 'Abhishek Varman';
 
 
 
 -- 8. List all TV shows with more than 5 seasons
 
-SELECT *
+SELECT * 
 FROM netflix
 WHERE 
-	TYPE = 'TV Show'
-	AND
-	SPLIT_PART(duration, ' ', 1)::INT > 5
+    type = 'TV Show'
+    AND CAST(SUBSTRING_INDEX(duration, ' ', 1) AS UNSIGNED) > 5
+    AND duration LIKE '%Season%';
 
 
 -- 9. List all movies that are documentaries
+
 SELECT * FROM netflix
-WHERE listed_in LIKE '%Documentaries'
+WHERE listed_in LIKE '%Documentaries';
 
 
 
 -- 10. Find all content without a director.
 	
 SELECT * FROM netflix
-WHERE director IS NULL
+WHERE director IS NULL;
 
-
--- 11. Find how many movies actor 'Salman Khan' appeared in last 10 years!
-
-SELECT * FROM netflix
-WHERE 
-	casts LIKE '%Salman Khan%'
-	AND 
-	release_year > EXTRACT(YEAR FROM CURRENT_DATE) - 10
-
-
--- 12. Find the top 10 actors who have appeared in the highest number of movies produced in India.
-
-SELECT 
-	UNNEST(STRING_TO_ARRAY(casts, ',')) as actor,
-	COUNT(*)
-FROM netflix
-WHERE country = 'India'
-GROUP BY 1
-ORDER BY 2 DESC
-LIMIT 10
-
-
--- End of reports
+-- END
